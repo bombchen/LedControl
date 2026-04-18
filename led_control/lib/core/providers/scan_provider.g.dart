@@ -23,7 +23,7 @@ final deviceScannerProvider = AutoDisposeProvider<DeviceScanner>.internal(
 );
 
 typedef DeviceScannerRef = AutoDisposeProviderRef<DeviceScanner>;
-String _$deviceScanHash() => r'e5e2f424dd7d3f09d6e62b78c602b76013fbae03';
+String _$deviceScanHash() => r'7852b3c21aeeb74156e8e187ebc58ab68ef17d5b';
 
 /// 设备扫描器 Provider
 ///

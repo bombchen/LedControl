@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:led_control/features/control/control_page.dart';
 
 class LedControlApp extends StatelessWidget {
   const LedControlApp({super.key});
@@ -14,29 +15,7 @@ class LedControlApp extends StatelessWidget {
         scaffoldBackgroundColor: CupertinoColors.systemBackground,
         barBackgroundColor: CupertinoColors.systemBackground,
       ),
-      home: _SplashScreen(),
-    );
-  }
-}
-
-class _SplashScreen extends StatelessWidget {
-  const _SplashScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return const CupertinoPageScaffold(
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(CupertinoIcons.lightbulb, size: 80, color: CupertinoColors.systemYellow),
-            SizedBox(height: 16),
-            Text('LED 灯带控制器', style: TextStyle(fontSize: 24)),
-            SizedBox(height: 8),
-            Text('初始化中...', style: TextStyle(color: CupertinoColors.systemGrey)),
-          ],
-        ),
-      ),
+      home: ControlPage(),
     );
   }
 }
