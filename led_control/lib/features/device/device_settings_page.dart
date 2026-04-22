@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:led_control/core/models/device.dart';
 import 'package:led_control/core/providers/device_provider.dart';
+import 'package:led_control/features/provisioning/provisioning_guide_page.dart';
 
 class DeviceSettingsPage extends ConsumerStatefulWidget {
   const DeviceSettingsPage({super.key, required this.device});
@@ -63,6 +64,14 @@ class _DeviceSettingsPageState extends ConsumerState<DeviceSettingsPage> {
     Navigator.of(context).pop();
   }
 
+  void _reProvision() {
+    Navigator.of(context).push(
+      CupertinoPageRoute<void>(
+        builder: (context) => const ProvisioningGuidePage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
@@ -97,13 +106,13 @@ class _DeviceSettingsPageState extends ConsumerState<DeviceSettingsPage> {
             ),
             const SizedBox(height: 12),
             CupertinoButton(
-              onPressed: _deleteDevice,
-              child: const Text('删除设备'),
+              onPressed: _reProvision,
+              child: const Text('重新配网'),
             ),
             const SizedBox(height: 12),
             CupertinoButton(
-              onPressed: () {},
-              child: const Text('重新配网'),
+              onPressed: _deleteDevice,
+              child: const Text('删除设备'),
             ),
           ],
         ),

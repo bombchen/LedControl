@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:led_control/core/models/network_result.dart';
 import 'package:led_control/core/network/led_protocol.dart';
 import 'package:led_control/core/network/udp_client.dart';
-import 'package:led_control/core/models/network_result.dart';
 import 'package:led_control/core/providers/control_provider.dart';
 
 part 'provisioning_provider.g.dart';
@@ -92,5 +92,9 @@ class Provisioning extends _$Provisioning {
 
   void retry() {
     state = state.copyWith(step: ProvisioningStep.waiting, errorMessage: null);
+  }
+
+  void complete() {
+    state = state.copyWith(step: ProvisioningStep.complete, errorMessage: null);
   }
 }

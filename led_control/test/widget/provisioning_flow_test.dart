@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:led_control/features/provisioning/provisioning_guide_page.dart';
-import 'package:led_control/features/provisioning/wifi_select_page.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:led_control/features/provisioning/password_entry_page.dart';
+import 'package:led_control/features/provisioning/provisioning_guide_page.dart';
 import 'package:led_control/features/provisioning/provisioning_wait_page.dart';
+import 'package:led_control/features/provisioning/wifi_select_page.dart';
 
 void main() {
   testWidgets('provisioning flow pages render their core actions', (tester) async {

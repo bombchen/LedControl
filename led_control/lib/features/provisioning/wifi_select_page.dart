@@ -12,11 +12,26 @@ class WifiSelectPage extends ConsumerWidget {
         middle: Text('Wi‑Fi 选择'),
       ),
       child: SafeArea(
-        child: Center(
-          child: CupertinoButton.filled(
-            onPressed: () => ref.read(provisioningProvider.notifier).selectSsid('MyWifi'),
-            child: const Text('选择 MyWifi'),
-          ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const Text('请选择要连接的 Wi‑Fi 网络'),
+            const SizedBox(height: 16),
+            CupertinoButton.filled(
+              onPressed: () => ref.read(provisioningProvider.notifier).selectSsid('MyWifi'),
+              child: const Text('选择 MyWifi'),
+            ),
+            const SizedBox(height: 12),
+            CupertinoButton(
+              onPressed: () {},
+              child: const Text('刷新列表'),
+            ),
+            const SizedBox(height: 12),
+            CupertinoButton(
+              onPressed: () {},
+              child: const Text('手动输入 SSID'),
+            ),
+          ],
         ),
       ),
     );

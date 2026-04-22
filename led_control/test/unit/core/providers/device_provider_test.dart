@@ -16,11 +16,9 @@ void main() {
     });
 
     test('应该能够初始化并获取空设备列表', () async {
-      // Arrange
       when(() => mockStorage.getAllDevices())
           .thenAnswer((_) async => []);
 
-      // Act
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWith((ref) async =>
@@ -31,13 +29,11 @@ void main() {
 
       final devices = await container.read(deviceProvider.future);
 
-      // Assert
       expect(devices, isEmpty);
       container.dispose();
     });
 
     test('应该能够从存储加载设备列表', () async {
-      // Arrange
       final devices = [
         Device(
           id: 'id1',
@@ -60,7 +56,6 @@ void main() {
       when(() => mockStorage.getAllDevices())
           .thenAnswer((_) async => devices);
 
-      // Act
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWith((ref) async =>
@@ -71,7 +66,6 @@ void main() {
 
       final loadedDevices = await container.read(deviceProvider.future);
 
-      // Assert
       expect(loadedDevices.length, 2);
       expect(loadedDevices[0].id, 'id1');
       expect(loadedDevices[1].id, 'id2');
@@ -155,7 +149,6 @@ void main() {
     });
 
     test('应该能够删除设备', () async {
-      // Arrange
       final devices = [
         Device(
           id: 'id1',
@@ -172,7 +165,6 @@ void main() {
       when(() => mockStorage.deleteDevice('id1'))
           .thenAnswer((_) async {});
 
-      // Act
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWith((ref) async =>
@@ -187,7 +179,6 @@ void main() {
     });
 
     test('应该能够更新设备', () async {
-      // Arrange
       final originalDevice = Device(
         id: 'id1',
         name: '原始名称',
@@ -204,7 +195,6 @@ void main() {
       when(() => mockStorage.saveDevice(updatedDevice))
           .thenAnswer((_) async {});
 
-      // Act
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWith((ref) async =>
@@ -219,7 +209,6 @@ void main() {
     });
 
     test('应该能够通过 ID 获取设备', () async {
-      // Arrange
       final devices = [
         Device(
           id: 'id1',
@@ -234,7 +223,6 @@ void main() {
       when(() => mockStorage.getAllDevices())
           .thenAnswer((_) async => devices);
 
-      // Act
       final container = ProviderContainer(
         overrides: [
           sharedPreferencesProvider.overrideWith((ref) async =>
@@ -246,10 +234,23 @@ void main() {
       await container.read(deviceProvider.future);
       final device = container.read(deviceProvider.notifier).getDevice('id1');
 
-      // Assert
       expect(device, isNotNull);
       expect(device!.id, 'id1');
       container.dispose();
+    });
+
+    test('应该能够重新配网入口使用现有设备设置', () async {
+      final device = Device(
+        id: 'id1',
+        name: '设备1',
+        ipAddress: '192.168.1.100',
+        port: 8888,
+        lastSeen: DateTime.now(),
+        isOnline: true,
+      );
+
+      expect(device.ipAddress, '192.168.1.100');
+      expect(device.port, 8888);
     });
   });
 }

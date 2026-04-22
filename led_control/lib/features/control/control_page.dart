@@ -304,7 +304,6 @@ class _ControlPageState extends ConsumerState<ControlPage> {
   Widget _buildEffectTab(ControlState controlState) {
     return CupertinoTabView(
       builder: (context) {
-        final devicesAsync = ref.watch(deviceProvider);
         final deviceIp = _currentDevice()?.ipAddress;
 
         return CupertinoPageScaffold(
@@ -584,55 +583,54 @@ class _ControlPageState extends ConsumerState<ControlPage> {
   }
 
   Widget _buildQuickActionsForIp(String ipAddress) {
+    final actions = [
+      _QuickEffectAction('彩虹', LEDEffect.rainbow, CupertinoIcons.sparkles),
+      _QuickEffectAction('呼吸', LEDEffect.breathing, CupertinoIcons.wind),
+      _QuickEffectAction('火焰', LEDEffect.fire, CupertinoIcons.flame),
+      _QuickEffectAction('星空', LEDEffect.starry, CupertinoIcons.star),
+      _QuickEffectAction('波浪', LEDEffect.wave, CupertinoIcons.waveform),
+      _QuickEffectAction('追逐', LEDEffect.chase, CupertinoIcons.arrow_right_circle),
+      _QuickEffectAction('闪烁', LEDEffect.flash, CupertinoIcons.bolt),
+      _QuickEffectAction('贪吃蛇', LEDEffect.snake, CupertinoIcons.gamecontroller),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          '快捷操作',
+          '快捷效果',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildQuickActionButton(
-                icon: CupertinoIcons.forward_end,
-                label: '下一个',
-                onTap: () async {
-                  final result = await ref
-                      .read(lEDControlProvider.notifier)
-                      .nextEffect(ipAddress);
-                  if (!mounted) return;
-                  if (result.isSuccess) {
-                    _showSuccessDialog('已切换到下一个效果');
-                  } else {
-                    _showErrorDialog(result.error ?? '切换失败');
-                  }
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildQuickActionButton(
-                icon: CupertinoIcons.backward_end,
-                label: '上一个',
-                onTap: () async {
-                  final result = await ref
-                      .read(lEDControlProvider.notifier)
-                      .previousEffect(ipAddress);
-                  if (!mounted) return;
-                  if (result.isSuccess) {
-                    _showSuccessDialog('已切换到上一个效果');
-                  } else {
-                    _showErrorDialog(result.error ?? '切换失败');
-                  }
-                },
-              ),
-            ),
-          ],
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          childAspectRatio: 2.8,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          children: actions
+              .map(
+                (action) => _buildQuickActionButton(
+                  icon: action.icon,
+                  label: action.label,
+                  onTap: () async {
+                    final result = await ref
+                        .read(lEDControlProvider.notifier)
+                        .setEffect(ipAddress: ipAddress, effect: action.effect);
+                    if (!mounted) return;
+                    if (result.isSuccess) {
+                      _showSuccessDialog('已切换到${action.label}效果');
+                    } else {
+                      _showErrorDialog(result.error ?? '切换失败');
+                    }
+                  },
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -761,6 +759,14 @@ class _ControlPageState extends ConsumerState<ControlPage> {
       ),
     );
   }
+}
+
+class _QuickEffectAction {
+  const _QuickEffectAction(this.label, this.effect, this.icon);
+
+  final String label;
+  final LEDEffect effect;
+  final IconData icon;
 }
 
 /// 加载状态
