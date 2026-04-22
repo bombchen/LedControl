@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:led_control/core/storage/device_storage.dart';
 import 'package:led_control/core/models/device.dart';
+import 'package:led_control/core/storage/device_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 part 'device_provider.g.dart';
@@ -9,18 +9,14 @@ part 'device_provider.g.dart';
 /// SharedPreferences Provider
 @riverpod
 Future<SharedPreferences> sharedPreferences(SharedPreferencesRef ref) async {
-  return await SharedPreferences.getInstance();
+  return SharedPreferences.getInstance();
 }
 
 /// 设备存储 Provider
 @riverpod
-DeviceStorage deviceStorage(DeviceStorageRef ref) {
-  final prefsAsyncValue = ref.watch(sharedPreferencesProvider);
-  return prefsAsyncValue.when(
-    data: (prefs) => DeviceStorage(prefs),
-    loading: () => throw UnimplementedError('SharedPreferences not loaded'),
-    error: (_, __) => throw UnimplementedError('Failed to load SharedPreferences'),
-  );
+Future<DeviceStorage> deviceStorage(DeviceStorageRef ref) async {
+  final prefs = await ref.watch(sharedPreferencesProvider.future);
+  return DeviceStorage(prefs);
 }
 
 /// 设备列表 Provider
@@ -28,42 +24,43 @@ DeviceStorage deviceStorage(DeviceStorageRef ref) {
 class DeviceList extends _$DeviceList {
   @override
   Future<List<Device>> build() async {
-    final storage = ref.read(deviceStorageProvider);
-    return await storage.getAllDevices();
+    final storage = await ref.watch(deviceStorageProvider.future);
+    return storage.getAllDevices();
   }
 
   /// 添加设备
   Future<void> addDevice(Device device) async {
-    final storage = ref.read(deviceStorageProvider);
+    final storage = await ref.read(deviceStorageProvider.future);
     await storage.saveDevice(device);
+    ref.invalidateSelf();
+  }
 
-    // 直接更新状态
-    final currentDevices = state.valueOrNull ?? [];
-    state = AsyncValue.data([...currentDevices, device]);
+  /// 选择当前设备
+  Future<void> selectDevice(String deviceId) async {
+    final storage = await ref.read(deviceStorageProvider.future);
+    await storage.setSelectedDevice(deviceId);
+    ref.invalidateSelf();
   }
 
   /// 删除设备
   Future<void> removeDevice(String deviceId) async {
-    final storage = ref.read(deviceStorageProvider);
+    final storage = await ref.read(deviceStorageProvider.future);
     await storage.deleteDevice(deviceId);
-
-    // 直接更新状态
-    final currentDevices = state.valueOrNull ?? [];
-    state = AsyncValue.data(
-      currentDevices.where((d) => d.id != deviceId).toList(),
-    );
+    ref.invalidateSelf();
   }
 
   /// 更新设备
   Future<void> updateDevice(Device device) async {
-    final storage = ref.read(deviceStorageProvider);
+    final storage = await ref.read(deviceStorageProvider.future);
     await storage.saveDevice(device);
+    ref.invalidateSelf();
+  }
 
-    // 直接更新状态
-    final currentDevices = state.valueOrNull ?? [];
-    state = AsyncValue.data(
-      currentDevices.map((d) => d.id == device.id ? device : d).toList(),
-    );
+  /// 发现流程写入或更新设备
+  Future<void> updateOrAddDiscoveredDevice(Device device) async {
+    final storage = await ref.read(deviceStorageProvider.future);
+    await storage.saveDevice(device);
+    ref.invalidateSelf();
   }
 
   /// 通过 ID 获取设备
@@ -92,11 +89,9 @@ class DeviceList extends _$DeviceList {
 
   /// 清空所有设备
   Future<void> clearAll() async {
-    final storage = ref.read(deviceStorageProvider);
+    final storage = await ref.read(deviceStorageProvider.future);
     await storage.clear();
-
-    // 直接更新状态
-    state = const AsyncValue.data([]);
+    ref.invalidateSelf();
   }
 
   /// 刷新设备列表

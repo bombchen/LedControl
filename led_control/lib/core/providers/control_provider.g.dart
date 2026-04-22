@@ -22,7 +22,7 @@ final udpClientProvider = AutoDisposeProvider<UDPClient>.internal(
 );
 
 typedef UdpClientRef = AutoDisposeProviderRef<UDPClient>;
-String _$lEDControlHash() => r'f5331d094a55d3aeb311efb120e3ffdd5352f956';
+String _$lEDControlHash() => r'730eaaed31e9ba49f7801f848cc74c0843cb566d';
 
 /// LED 控制器 Provider
 ///

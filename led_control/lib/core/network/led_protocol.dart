@@ -1,3 +1,4 @@
+import 'package:led_control/core/models/device.dart';
 import 'package:led_control/core/models/led_effect.dart';
 
 /// LED 设备通信协议
@@ -82,17 +83,6 @@ class ProtocolResponse {
     }
     return null;
   }
-}
-
-/// 设备状态信息
-class DeviceStatus {
-  const DeviceStatus({
-    required this.effect,
-    required this.brightness,
-  });
-
-  final LEDEffect effect;
-  final int brightness;
 }
 
 /// LED 协议响应解析器

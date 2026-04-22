@@ -1,13 +1,16 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:led_control/app.dart';
+import 'package:led_control/features/discovery/discovery_page.dart';
 
 void main() {
-  testWidgets('App starts with discovery page', (WidgetTester tester) async {
+  testWidgets('discovery page shows scan and provisioning actions', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(
-        child: LedControlApp(),
+        child: CupertinoApp(
+          home: DiscoveryPage(),
+        ),
       ),
     );
 

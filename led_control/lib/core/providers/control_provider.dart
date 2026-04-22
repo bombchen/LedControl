@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:led_control/core/models/device.dart';
 import 'package:led_control/core/network/udp_client.dart';
 import 'package:led_control/core/network/led_protocol.dart';
 import 'package:led_control/core/models/led_effect.dart';
@@ -19,21 +20,29 @@ class ControlState {
     this.isLoading = false,
     this.lastError,
     this.lastCommandTime,
+    this.currentEffect,
+    this.currentBrightness,
   });
 
   final bool isLoading;
   final String? lastError;
   final DateTime? lastCommandTime;
+  final LEDEffect? currentEffect;
+  final int? currentBrightness;
 
   ControlState copyWith({
     bool? isLoading,
     String? lastError,
     DateTime? lastCommandTime,
+    LEDEffect? currentEffect,
+    int? currentBrightness,
   }) {
     return ControlState(
       isLoading: isLoading ?? this.isLoading,
       lastError: lastError ?? this.lastError,
       lastCommandTime: lastCommandTime ?? this.lastCommandTime,
+      currentEffect: currentEffect ?? this.currentEffect,
+      currentBrightness: currentBrightness ?? this.currentBrightness,
     );
   }
 }
@@ -63,17 +72,6 @@ class ControlResult {
       error: error,
     );
   }
-}
-
-/// LED 设备状态
-class DeviceStatus {
-  const DeviceStatus({
-    required this.effect,
-    required this.brightness,
-  });
-
-  final LEDEffect effect;
-  final int brightness;
 }
 
 /// LED 控制器 Provider
@@ -110,6 +108,7 @@ class LEDControl extends _$LEDControl {
           state = state.copyWith(
             isLoading: false,
             lastCommandTime: DateTime.now(),
+            currentEffect: effect,
           );
           return ControlResult.success(data: response.data);
         } else {
@@ -166,6 +165,7 @@ class LEDControl extends _$LEDControl {
           state = state.copyWith(
             isLoading: false,
             lastCommandTime: DateTime.now(),
+            currentBrightness: brightness,
           );
           return ControlResult.success(data: response.data);
         } else {
@@ -214,9 +214,13 @@ class LEDControl extends _$LEDControl {
         final response = LEDProtocolParser.parseResponse(result.data);
 
         if (response.isSuccess) {
+          final current = state.currentEffect ?? LEDEffect.rainbow;
+          final currentIndex = LEDEffect.values.indexOf(current);
+          final nextIndex = (currentIndex + 1) % LEDEffect.values.length;
           state = state.copyWith(
             isLoading: false,
             lastCommandTime: DateTime.now(),
+            currentEffect: LEDEffect.values[nextIndex],
           );
           return ControlResult.success(data: response.data);
         } else {
@@ -265,9 +269,14 @@ class LEDControl extends _$LEDControl {
         final response = LEDProtocolParser.parseResponse(result.data);
 
         if (response.isSuccess) {
+          final current = state.currentEffect ?? LEDEffect.rainbow;
+          final currentIndex = LEDEffect.values.indexOf(current);
+          final previousIndex =
+              (currentIndex - 1 + LEDEffect.values.length) % LEDEffect.values.length;
           state = state.copyWith(
             isLoading: false,
             lastCommandTime: DateTime.now(),
+            currentEffect: LEDEffect.values[previousIndex],
           );
           return ControlResult.success(data: response.data);
         } else {
@@ -321,6 +330,8 @@ class LEDControl extends _$LEDControl {
             state = state.copyWith(
               isLoading: false,
               lastCommandTime: DateTime.now(),
+              currentEffect: status.effect,
+              currentBrightness: status.brightness,
             );
             // 返回包含状态信息的结果
             return ControlResult.success(

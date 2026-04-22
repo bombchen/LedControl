@@ -6,7 +6,7 @@ part of 'device_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$sharedPreferencesHash() => r'7cd30c9640ca952d1bcf1772c709fc45dc47c8b3';
+String _$sharedPreferencesHash() => r'aa7ace48f3c0dce382957e3c6eac2449573583a9';
 
 /// SharedPreferences Provider
 ///
@@ -24,13 +24,13 @@ final sharedPreferencesProvider =
 );
 
 typedef SharedPreferencesRef = AutoDisposeFutureProviderRef<SharedPreferences>;
-String _$deviceStorageHash() => r'1bd8be87212dcaad82e122d3572bd7770e938c99';
+String _$deviceStorageHash() => r'598cf3de7c437ff1458f84b77d756c0132886d75';
 
 /// 设备存储 Provider
 ///
 /// Copied from [deviceStorage].
 @ProviderFor(deviceStorage)
-final deviceStorageProvider = AutoDisposeProvider<DeviceStorage>.internal(
+final deviceStorageProvider = AutoDisposeFutureProvider<DeviceStorage>.internal(
   deviceStorage,
   name: r'deviceStorageProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -40,8 +40,8 @@ final deviceStorageProvider = AutoDisposeProvider<DeviceStorage>.internal(
   allTransitiveDependencies: null,
 );
 
-typedef DeviceStorageRef = AutoDisposeProviderRef<DeviceStorage>;
-String _$deviceListHash() => r'6d22a7737578aa5e39a0fcc33b0cbb9073a70207';
+typedef DeviceStorageRef = AutoDisposeFutureProviderRef<DeviceStorage>;
+String _$deviceListHash() => r'379b89dbda5ce0412a91f5c66049689b48970419';
 
 /// 设备列表 Provider
 ///

@@ -1,7 +1,19 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:led_control/core/models/led_effect.dart';
 
 part 'device.freezed.dart';
 part 'device.g.dart';
+
+/// 设备当前灯效状态
+class DeviceStatus {
+  const DeviceStatus({
+    required this.effect,
+    required this.brightness,
+  });
+
+  final LEDEffect effect;
+  final int brightness;
+}
 
 /// LED 设备数据模型
 @freezed
@@ -17,6 +29,9 @@ class Device with _$Device {
 
     /// IP 地址
     required String ipAddress,
+
+    /// 是否为当前选中设备
+    @Default(false) bool isSelected,
 
     /// UDP 端口（默认 8888）
     @Default(8888) int port,

@@ -29,6 +29,9 @@ mixin _$Device {
   /// IP 地址
   String get ipAddress => throw _privateConstructorUsedError;
 
+  /// 是否为当前选中设备
+  bool get isSelected => throw _privateConstructorUsedError;
+
   /// UDP 端口（默认 8888）
   int get port => throw _privateConstructorUsedError;
 
@@ -52,6 +55,7 @@ abstract class $DeviceCopyWith<$Res> {
       {String id,
       String name,
       String ipAddress,
+      bool isSelected,
       int port,
       DateTime lastSeen,
       bool isOnline});
@@ -73,6 +77,7 @@ class _$DeviceCopyWithImpl<$Res, $Val extends Device>
     Object? id = null,
     Object? name = null,
     Object? ipAddress = null,
+    Object? isSelected = null,
     Object? port = null,
     Object? lastSeen = null,
     Object? isOnline = null,
@@ -90,6 +95,10 @@ class _$DeviceCopyWithImpl<$Res, $Val extends Device>
           ? _value.ipAddress
           : ipAddress // ignore: cast_nullable_to_non_nullable
               as String,
+      isSelected: null == isSelected
+          ? _value.isSelected
+          : isSelected // ignore: cast_nullable_to_non_nullable
+              as bool,
       port: null == port
           ? _value.port
           : port // ignore: cast_nullable_to_non_nullable
@@ -117,6 +126,7 @@ abstract class _$$DeviceImplCopyWith<$Res> implements $DeviceCopyWith<$Res> {
       {String id,
       String name,
       String ipAddress,
+      bool isSelected,
       int port,
       DateTime lastSeen,
       bool isOnline});
@@ -136,6 +146,7 @@ class __$$DeviceImplCopyWithImpl<$Res>
     Object? id = null,
     Object? name = null,
     Object? ipAddress = null,
+    Object? isSelected = null,
     Object? port = null,
     Object? lastSeen = null,
     Object? isOnline = null,
@@ -153,6 +164,10 @@ class __$$DeviceImplCopyWithImpl<$Res>
           ? _value.ipAddress
           : ipAddress // ignore: cast_nullable_to_non_nullable
               as String,
+      isSelected: null == isSelected
+          ? _value.isSelected
+          : isSelected // ignore: cast_nullable_to_non_nullable
+              as bool,
       port: null == port
           ? _value.port
           : port // ignore: cast_nullable_to_non_nullable
@@ -176,6 +191,7 @@ class _$DeviceImpl extends _Device {
       {required this.id,
       required this.name,
       required this.ipAddress,
+      this.isSelected = false,
       this.port = 8888,
       required this.lastSeen,
       this.isOnline = false})
@@ -196,6 +212,11 @@ class _$DeviceImpl extends _Device {
   @override
   final String ipAddress;
 
+  /// 是否为当前选中设备
+  @override
+  @JsonKey()
+  final bool isSelected;
+
   /// UDP 端口（默认 8888）
   @override
   @JsonKey()
@@ -212,7 +233,7 @@ class _$DeviceImpl extends _Device {
 
   @override
   String toString() {
-    return 'Device(id: $id, name: $name, ipAddress: $ipAddress, port: $port, lastSeen: $lastSeen, isOnline: $isOnline)';
+    return 'Device(id: $id, name: $name, ipAddress: $ipAddress, isSelected: $isSelected, port: $port, lastSeen: $lastSeen, isOnline: $isOnline)';
   }
 
   @override
@@ -224,6 +245,8 @@ class _$DeviceImpl extends _Device {
             (identical(other.name, name) || other.name == name) &&
             (identical(other.ipAddress, ipAddress) ||
                 other.ipAddress == ipAddress) &&
+            (identical(other.isSelected, isSelected) ||
+                other.isSelected == isSelected) &&
             (identical(other.port, port) || other.port == port) &&
             (identical(other.lastSeen, lastSeen) ||
                 other.lastSeen == lastSeen) &&
@@ -233,8 +256,8 @@ class _$DeviceImpl extends _Device {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, name, ipAddress, port, lastSeen, isOnline);
+  int get hashCode => Object.hash(
+      runtimeType, id, name, ipAddress, isSelected, port, lastSeen, isOnline);
 
   @JsonKey(ignore: true)
   @override
@@ -255,6 +278,7 @@ abstract class _Device extends Device {
       {required final String id,
       required final String name,
       required final String ipAddress,
+      final bool isSelected,
       final int port,
       required final DateTime lastSeen,
       final bool isOnline}) = _$DeviceImpl;
@@ -274,6 +298,10 @@ abstract class _Device extends Device {
 
   /// IP 地址
   String get ipAddress;
+  @override
+
+  /// 是否为当前选中设备
+  bool get isSelected;
   @override
 
   /// UDP 端口（默认 8888）

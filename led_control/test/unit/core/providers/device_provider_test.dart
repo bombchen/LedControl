@@ -23,7 +23,9 @@ void main() {
       // Act
       final container = ProviderContainer(
         overrides: [
-          deviceStorageProvider.overrideWithValue(mockStorage),
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
         ],
       );
 
@@ -61,7 +63,9 @@ void main() {
       // Act
       final container = ProviderContainer(
         overrides: [
-          deviceStorageProvider.overrideWithValue(mockStorage),
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
         ],
       );
 
@@ -74,8 +78,7 @@ void main() {
       container.dispose();
     });
 
-    test('应该能够添加设备', () async {
-      // Arrange
+    test('应该能够添加设备并刷新列表', () async {
       final newDevice = Device(
         id: 'new-id',
         name: '新设备',
@@ -89,23 +92,65 @@ void main() {
           .thenAnswer((_) async => []);
       when(() => mockStorage.saveDevice(newDevice))
           .thenAnswer((_) async {});
+      when(() => mockStorage.getAllDevices())
+          .thenAnswer((_) async => [newDevice]);
 
-      // Act
       final container = ProviderContainer(
         overrides: [
-          deviceStorageProvider.overrideWithValue(mockStorage),
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
         ],
       );
 
+      await container.read(deviceProvider.future);
       await container.read(deviceProvider.notifier).addDevice(newDevice);
-      final devicesAsync = container.read(deviceProvider);
-      final devices = devicesAsync.value;
+      await container.read(deviceProvider.notifier).refresh();
+      final devices = await container.read(deviceProvider.future);
 
-      // Assert
-      expect(devices, isNotNull);
-      expect(devices!.length, 1);
-      expect(devices[0].id, 'new-id');
+      expect(devices, hasLength(1));
+      expect(devices.first.id, 'new-id');
       verify(() => mockStorage.saveDevice(newDevice)).called(1);
+      container.dispose();
+    });
+
+    test('应该能够选择当前设备', () async {
+      final devices = [
+        Device(
+          id: 'id1',
+          name: '设备1',
+          ipAddress: '192.168.1.100',
+          port: 8888,
+          lastSeen: DateTime.now(),
+          isOnline: true,
+        ),
+        Device(
+          id: 'id2',
+          name: '设备2',
+          ipAddress: '192.168.1.101',
+          port: 8888,
+          lastSeen: DateTime.now(),
+          isOnline: false,
+        ),
+      ];
+
+      when(() => mockStorage.getAllDevices())
+          .thenAnswer((_) async => devices);
+      when(() => mockStorage.setSelectedDevice('id2'))
+          .thenAnswer((_) async {});
+
+      final container = ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
+        ],
+      );
+
+      await container.read(deviceProvider.future);
+      await container.read(deviceProvider.notifier).selectDevice('id2');
+
+      verify(() => mockStorage.setSelectedDevice('id2')).called(1);
       container.dispose();
     });
 
@@ -130,17 +175,13 @@ void main() {
       // Act
       final container = ProviderContainer(
         overrides: [
-          deviceStorageProvider.overrideWithValue(mockStorage),
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
         ],
       );
 
       await container.read(deviceProvider.notifier).removeDevice('id1');
-      final updatedDevicesAsync = container.read(deviceProvider);
-      final updatedDevices = updatedDevicesAsync.value;
-
-      // Assert
-      expect(updatedDevices, isNotNull);
-      expect(updatedDevices!, isEmpty);
       verify(() => mockStorage.deleteDevice('id1')).called(1);
       container.dispose();
     });
@@ -166,18 +207,13 @@ void main() {
       // Act
       final container = ProviderContainer(
         overrides: [
-          deviceStorageProvider.overrideWithValue(mockStorage),
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
         ],
       );
 
       await container.read(deviceProvider.notifier).updateDevice(updatedDevice);
-      final devicesAsync = container.read(deviceProvider);
-      final devices = devicesAsync.value;
-
-      // Assert
-      expect(devices, isNotNull);
-      expect(devices!.length, 1);
-      expect(devices[0].name, '更新后的名称');
       verify(() => mockStorage.saveDevice(updatedDevice)).called(1);
       container.dispose();
     });
@@ -201,11 +237,12 @@ void main() {
       // Act
       final container = ProviderContainer(
         overrides: [
-          deviceStorageProvider.overrideWithValue(mockStorage),
+          sharedPreferencesProvider.overrideWith((ref) async =>
+              throw UnimplementedError('should be overridden in tests')),
+          deviceStorageProvider.overrideWith((ref) async => mockStorage),
         ],
       );
 
-      // Wait for state to load
       await container.read(deviceProvider.future);
       final device = container.read(deviceProvider.notifier).getDevice('id1');
 

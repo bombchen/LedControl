@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart';
-import 'package:led_control/features/control/control_page.dart';
+import 'package:led_control/features/discovery/discovery_page.dart';
 
 class LedControlApp extends StatelessWidget {
   const LedControlApp({super.key});
@@ -15,7 +15,7 @@ class LedControlApp extends StatelessWidget {
         scaffoldBackgroundColor: CupertinoColors.systemBackground,
         barBackgroundColor: CupertinoColors.systemBackground,
       ),
-      home: ControlPage(),
+      home: DiscoveryPage(),
     );
   }
 }

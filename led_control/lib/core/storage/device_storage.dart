@@ -28,6 +28,15 @@ class DeviceStorage {
     await _saveDevices(devices);
   }
 
+  /// 设置当前选中设备
+  Future<void> setSelectedDevice(String id) async {
+    final devices = await getAllDevices();
+    final updatedDevices = devices
+        .map((device) => device.copyWith(isSelected: device.id == id))
+        .toList();
+    await _saveDevices(updatedDevices);
+  }
+
   /// 获取指定设备
   Future<Device?> getDevice(String id) async {
     final devices = await getAllDevices();
