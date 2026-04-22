@@ -7,6 +7,7 @@ import 'package:led_control/core/providers/device_provider.dart';
 import 'package:led_control/features/control/widgets/brightness_slider.dart';
 import 'package:led_control/features/control/widgets/effect_grid.dart';
 import 'package:led_control/features/control/widgets/effect_preview.dart';
+import 'package:led_control/features/device/device_settings_page.dart';
 
 /// LED 控制主页面
 class ControlPage extends ConsumerStatefulWidget {
@@ -18,6 +19,7 @@ class ControlPage extends ConsumerStatefulWidget {
 
 class _ControlPageState extends ConsumerState<ControlPage> {
   int _currentIndex = 0;
+  bool _didRefreshStatus = false;
 
   Device? _currentDevice() {
     final devices = ref.read(deviceProvider).valueOrNull;
@@ -238,6 +240,22 @@ class _ControlPageState extends ConsumerState<ControlPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    if (_didRefreshStatus) return;
+
+    final device = _currentDevice();
+    if (device == null) return;
+
+    _didRefreshStatus = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _refreshStatus(device);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final controlState = ref.watch(lEDControlProvider);
 
@@ -348,27 +366,18 @@ class _ControlPageState extends ConsumerState<ControlPage> {
             },
           ),
           data: (devices) {
-            if (devices.isEmpty) {
+            final device = devices.isEmpty
+                ? null
+                : devices.firstWhere(
+                    (device) => device.isSelected,
+                    orElse: () => devices.first,
+                  );
+
+            if (device == null) {
               return const _EmptyDevicesState();
             }
 
-            return CupertinoPageScaffold(
-              navigationBar: const CupertinoNavigationBar(
-                middle: Text('高级设置'),
-              ),
-              child: SafeArea(
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    _buildDeviceInfo(devices.firstWhere((device) => device.isSelected, orElse: () => devices.first)),
-                    const SizedBox(height: 24),
-                    _buildStatusSection(controlState),
-                    const SizedBox(height: 24),
-                    _buildAdvancedOptions(devices.firstWhere((device) => device.isSelected, orElse: () => devices.first)),
-                  ],
-                ),
-              ),
-            );
+            return DeviceSettingsPage(device: device);
           },
         );
       },

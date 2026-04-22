@@ -1,4 +1,5 @@
 .DS_Store
+.vscode/launch.json
 docs/.DS_Store
 docs/superpowers/.DS_Store
 
