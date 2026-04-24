@@ -7,6 +7,8 @@ class WifiSelectPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final wifiOptions = const ['MyWifi', 'GuestWiFi', 'OfficeNet'];
+
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
         middle: Text('Wi‑Fi 选择'),
@@ -17,11 +19,13 @@ class WifiSelectPage extends ConsumerWidget {
           children: [
             const Text('请选择要连接的 Wi‑Fi 网络'),
             const SizedBox(height: 16),
-            CupertinoButton.filled(
-              onPressed: () => ref.read(provisioningProvider.notifier).selectSsid('MyWifi'),
-              child: const Text('选择 MyWifi'),
-            ),
-            const SizedBox(height: 12),
+            for (final ssid in wifiOptions) ...[
+              CupertinoButton.filled(
+                onPressed: () => ref.read(provisioningProvider.notifier).selectSsid(ssid),
+                child: Text('选择 $ssid'),
+              ),
+              const SizedBox(height: 12),
+            ],
             CupertinoButton(
               onPressed: () {},
               child: const Text('刷新列表'),

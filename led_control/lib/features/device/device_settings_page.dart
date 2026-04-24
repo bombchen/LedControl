@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:led_control/core/models/device.dart';
+import 'package:led_control/core/providers/app_entry_provider.dart';
 import 'package:led_control/core/providers/device_provider.dart';
 import 'package:led_control/features/provisioning/provisioning_guide_page.dart';
 
@@ -60,11 +61,13 @@ class _DeviceSettingsPageState extends ConsumerState<DeviceSettingsPage> {
 
   Future<void> _deleteDevice() async {
     await ref.read(deviceProvider.notifier).removeDevice(widget.device.id);
+    ref.read(appEntryProvider.notifier).showDiscovery();
     if (!mounted) return;
-    Navigator.of(context).pop();
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   void _reProvision() {
+    ref.read(appEntryProvider.notifier).showDiscovery();
     Navigator.of(context).push(
       CupertinoPageRoute<void>(
         builder: (context) => const ProvisioningGuidePage(),
@@ -96,6 +99,16 @@ class _DeviceSettingsPageState extends ConsumerState<DeviceSettingsPage> {
                 CupertinoFormRow(
                   prefix: const Text('端口'),
                   child: CupertinoTextField(controller: _portController, keyboardType: TextInputType.number),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            CupertinoFormSection.insetGrouped(
+              header: const Text('设备状态'),
+              children: [
+                CupertinoListTile(
+                  title: const Text('在线状态'),
+                  trailing: Text(widget.device.isOnline ? '在线' : '离线'),
                 ),
               ],
             ),

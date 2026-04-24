@@ -1,10 +1,96 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:led_control/app.dart';
+import 'package:led_control/core/models/device.dart';
+import 'package:led_control/core/providers/device_provider.dart';
+import 'package:led_control/core/providers/discovery_provider.dart';
+import 'package:led_control/core/storage/device_storage.dart';
 import 'package:led_control/features/provisioning/password_entry_page.dart';
 import 'package:led_control/features/provisioning/provisioning_guide_page.dart';
 import 'package:led_control/features/provisioning/provisioning_wait_page.dart';
 import 'package:led_control/features/provisioning/wifi_select_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class _FakePrefs implements SharedPreferences {
+  final Map<String, Object> _data = {};
+
+  @override
+  bool? getBool(String key) => _data[key] as bool?;
+  @override
+  double? getDouble(String key) => _data[key] as double?;
+  @override
+  int? getInt(String key) => _data[key] as int?;
+  @override
+  List<String>? getStringList(String key) => _data[key] as List<String>?;
+  @override
+  String? getString(String key) => _data[key] as String?;
+  @override
+  bool containsKey(String key) => _data.containsKey(key);
+  @override
+  Set<String> getKeys() => _data.keys.toSet();
+  @override
+  dynamic get(String key) => _data[key];
+  @override
+  Future<bool> setBool(String key, bool value) async { _data[key] = value; return true; }
+  @override
+  Future<bool> setDouble(String key, double value) async { _data[key] = value; return true; }
+  @override
+  Future<bool> setInt(String key, int value) async { _data[key] = value; return true; }
+  @override
+  Future<bool> setString(String key, String value) async { _data[key] = value; return true; }
+  @override
+  Future<bool> setStringList(String key, List<String> value) async { _data[key] = value; return true; }
+  @override
+  Future<bool> remove(String key) async { _data.remove(key); return true; }
+  @override
+  Future<bool> clear() async { _data.clear(); return true; }
+  @override
+  Future<bool> commit() async => true;
+  @override
+  Future<bool> reload() async => true;
+  @override
+  Set<String> get keys => _data.keys.toSet();
+  @override
+  bool? operator [](String key) => _data[key] as bool?;
+  @override
+  Future<void> setMockInitialValues(Map<String, Object> values) async {}
+}
+
+class _FakeDeviceStorage extends DeviceStorage {
+  _FakeDeviceStorage() : super(_FakePrefs());
+
+  List<Device> _devices = [];
+
+  @override
+  Future<List<Device>> getAllDevices() async => _devices;
+
+  @override
+  Future<void> saveDevice(Device device) async {
+    _devices = [
+      ..._devices.where((d) => d.id != device.id),
+      device,
+    ];
+  }
+
+  @override
+  Future<void> setSelectedDevice(String id) async {
+    _devices = [
+      for (final device in _devices)
+        device.copyWith(isSelected: device.id == id),
+    ];
+  }
+
+  @override
+  Future<void> deleteDevice(String id) async {
+    _devices = _devices.where((device) => device.id != id).toList();
+  }
+
+  @override
+  Future<void> clear() async {
+    _devices = [];
+  }
+}
 
 void main() {
   testWidgets('provisioning flow pages render their core actions', (tester) async {
@@ -29,6 +115,10 @@ void main() {
 
     expect(find.text('Wi‑Fi 选择'), findsOneWidget);
     expect(find.text('选择 MyWifi'), findsOneWidget);
+    expect(find.text('选择 GuestWiFi'), findsOneWidget);
+    expect(find.text('选择 OfficeNet'), findsOneWidget);
+    expect(find.text('刷新列表'), findsOneWidget);
+    expect(find.text('手动输入 SSID'), findsOneWidget);
 
     await tester.pumpWidget(
       const ProviderScope(
@@ -40,6 +130,7 @@ void main() {
 
     expect(find.text('密码输入'), findsOneWidget);
     expect(find.text('连接'), findsOneWidget);
+    expect(find.text('显示密码'), findsOneWidget);
 
     await tester.pumpWidget(
       const ProviderScope(
@@ -51,5 +142,54 @@ void main() {
 
     expect(find.text('配网等待'), findsOneWidget);
     expect(find.text('重新尝试'), findsOneWidget);
+  });
+
+  testWidgets('waiting page returns to discovery when devices are found', (tester) async {
+    final storage = _FakeDeviceStorage();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWith((ref) async => _FakePrefs()),
+        deviceStorageProvider.overrideWith((ref) async => storage),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const LedControlApp(),
+      ),
+    );
+
+    await tester.pump();
+    expect(find.text('设备搜索'), findsOneWidget);
+
+    Navigator.of(tester.element(find.byType(CupertinoPageScaffold).first)).push(
+      CupertinoPageRoute<void>(
+        builder: (_) => const ProvisioningWaitPage(),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('重新尝试'), findsOneWidget);
+
+    await storage.saveDevice(
+      Device(
+        id: 'device-1',
+        name: '新设备',
+        ipAddress: '192.168.1.66',
+        port: 8888,
+        lastSeen: DateTime(2026, 4, 22),
+        isOnline: true,
+      ),
+    );
+    await container.read(deviceProvider.notifier).refresh();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('扫描设备'), findsAtLeastNWidgets(1));
+    expect(find.text('新设备'), findsOneWidget);
   });
 }

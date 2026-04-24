@@ -1,7 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:led_control/app.dart';
 import 'package:led_control/core/models/device.dart';
+import 'package:led_control/core/models/network_result.dart';
+import 'package:led_control/core/network/udp_client.dart';
+import 'package:led_control/core/providers/control_provider.dart';
 import 'package:led_control/core/providers/device_provider.dart';
 import 'package:led_control/core/providers/discovery_provider.dart';
 import 'package:led_control/core/storage/device_storage.dart';
@@ -51,6 +55,18 @@ class _FakePrefs implements SharedPreferences {
   bool? operator [](String key) => _data[key] as bool?;
   @override
   Future<void> setMockInitialValues(Map<String, Object> values) async {}
+}
+
+class _FakeUdpClient extends UDPClient {
+  @override
+  Future<NetworkResult<String>> sendCommand({
+    required String ipAddress,
+    required int port,
+    required String command,
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    return const NetworkSuccess('OK');
+  }
 }
 
 class _FakeDeviceStorage extends DeviceStorage {
@@ -106,8 +122,10 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWith((ref) async => _FakePrefs()),
         deviceStorageProvider.overrideWith((ref) async => storage),
+        udpClientProvider.overrideWith((ref) => _FakeUdpClient()),
       ],
     );
+    addTearDown(container.dispose);
 
     await tester.pumpWidget(
       UncontrolledProviderScope(
@@ -130,7 +148,88 @@ void main() {
     await tester.tap(find.text('开始配网'));
     await tester.pumpAndSettle();
     expect(find.text('配网引导'), findsOneWidget);
+  });
 
-    container.dispose();
+  testWidgets('tapping discovered device enters control page', (tester) async {
+    final storage = _FakeDeviceStorage();
+    await storage.saveDevice(
+      Device(
+        id: 'device-1',
+        name: '客厅灯',
+        ipAddress: '192.168.1.10',
+        port: 8888,
+        lastSeen: DateTime(2026, 4, 22),
+        isOnline: true,
+      ),
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWith((ref) async => _FakePrefs()),
+        deviceStorageProvider.overrideWith((ref) async => storage),
+        udpClientProvider.overrideWith((ref) => _FakeUdpClient()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const LedControlApp(),
+      ),
+    );
+
+    await tester.pump();
+    expect(find.text('客厅灯'), findsOneWidget);
+
+    await tester.tap(find.text('客厅灯'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('效果控制'), findsOneWidget);
+  });
+
+  testWidgets('manual add IP enters control page', (tester) async {
+    final storage = _FakeDeviceStorage();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWith((ref) async => _FakePrefs()),
+        deviceStorageProvider.overrideWith((ref) async => storage),
+        udpClientProvider.overrideWith((ref) => _FakeUdpClient()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const LedControlApp(),
+      ),
+    );
+
+    await tester.pump();
+
+    await tester.tap(find.text('手动添加 IP'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.enterText(
+      find.byType(CupertinoTextField).at(0),
+      '书房灯',
+    );
+    await tester.enterText(
+      find.byType(CupertinoTextField).at(1),
+      '192.168.1.88',
+    );
+    await tester.enterText(
+      find.byType(CupertinoTextField).at(2),
+      '9999',
+    );
+
+    await tester.tap(find.text('保存'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('效果控制'), findsOneWidget);
   });
 }

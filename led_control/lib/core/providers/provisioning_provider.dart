@@ -79,7 +79,7 @@ class Provisioning extends _$Provisioning {
     );
 
     if (result is NetworkSuccess<String>) {
-      state = state.copyWith(step: ProvisioningStep.complete, errorMessage: null);
+      state = state.copyWith(step: ProvisioningStep.waiting, errorMessage: null);
       return;
     }
 

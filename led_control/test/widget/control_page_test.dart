@@ -195,6 +195,8 @@ void main() {
     expect(find.text('设备设置'), findsOneWidget);
     expect(find.text('客厅灯'), findsOneWidget);
     expect(find.text('192.168.1.10'), findsOneWidget);
+    expect(find.text('在线状态'), findsOneWidget);
+    expect(find.text('在线'), findsOneWidget);
 
     container.dispose();
   });

@@ -32,4 +32,20 @@ void main() {
 
     container.dispose();
   });
+
+  test('provisioning state can move into waiting and complete', () {
+    final container = ProviderContainer();
+    final notifier = container.read(provisioningProvider.notifier);
+
+    notifier.goToWifiSelect();
+    notifier.selectSsid('MyWifi');
+    notifier.retry();
+
+    expect(container.read(provisioningProvider).step, ProvisioningStep.waiting);
+
+    notifier.complete();
+    expect(container.read(provisioningProvider).step, ProvisioningStep.complete);
+
+    container.dispose();
+  });
 }
